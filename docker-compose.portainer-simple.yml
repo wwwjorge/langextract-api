@@ -25,8 +25,6 @@ services:
       - langextract-uploads:/app/uploads
       - langextract-outputs:/app/outputs
       - langextract-logs:/app/logs
-    networks:
-      - langextract-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -47,10 +45,3 @@ volumes:
   # Volume para logs da aplicação
   langextract-logs:
     driver: local
-
-networks:
-  langextract-network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.25.0.0/16

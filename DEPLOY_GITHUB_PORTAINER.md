@@ -26,7 +26,7 @@
 #### Configurações do Repositório
 - **Repository URL:** `https://github.com/wwwjorge/langextract-api.git`
 - **Reference:** `refs/heads/main`
-- **Compose path:** `docker-compose.portainer-lite.yml`
+- **Compose path:** `docker-compose.portainer-simple.yml` (recomendado) ou `docker-compose.portainer-lite.yml`
 - **Additional paths:** (deixe vazio)
 
 ### 3. Configurar Variáveis de Ambiente
@@ -108,32 +108,17 @@ Os volumes são automaticamente criados:
 
 ## 🚨 Troubleshooting
 
-### Build Falha
-**Sintomas:** Stack não consegue fazer build
-**Soluções:**
-1. Verificar se o repositório está acessível
-2. Confirmar que `docker-compose.portainer-lite.yml` existe
-3. Verificar logs de build na aba "Build logs"
+### ❌ Erro de Rede: "Pool overlaps with other one"
+**Solução Rápida:** Use `docker-compose.portainer-simple.yml` como Compose path.
 
-### Container não Inicia
-**Sintomas:** Container fica em estado "Exited"
-**Soluções:**
-1. Verificar variáveis de ambiente obrigatórias
-2. Conferir logs do container
-3. Validar se as chaves de API estão corretas
+### Outros Problemas Comuns
+- **Erro de Build:** Verificar se o repositório é público e `Dockerfile.api` existe
+- **Container não Inicia:** Verificar logs e variáveis obrigatórias
+- **API não Responde:** Testar `http://SEU_HOST:8000/health`
 
-### API não Responde
-**Sintomas:** Timeout ao acessar endpoints
-**Soluções:**
-1. Verificar se a porta está correta
-2. Confirmar que o container está "healthy"
-3. Testar conectividade de rede
-
-### Erro de Permissões
-**Sintomas:** Erro ao criar arquivos/diretórios
-**Soluções:**
-1. Verificar permissões dos volumes
-2. Ajustar user/group no Dockerfile se necessário
+### 📋 Guia Completo de Troubleshooting
+Para problemas detalhados e soluções específicas, consulte:
+**[TROUBLESHOOTING_PORTAINER.md](./TROUBLESHOOTING_PORTAINER.md)**
 
 ---
 

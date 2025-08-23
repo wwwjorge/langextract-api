@@ -12,7 +12,7 @@
 3. **Build method:** **Repository**
 4. **Repository URL:** `https://github.com/wwwjorge/langextract-api.git`
 5. **Reference:** `refs/heads/main`
-6. **Compose path:** `docker-compose.portainer-lite.yml`
+6. **Compose path:** `docker-compose.portainer-simple.yml` (evita conflitos de rede)
 
 ### 3️⃣ Variáveis de Ambiente (Mínimas)
 ```env
@@ -54,14 +54,15 @@ API_SECRET_KEY=sua-chave-jwt-super-secreta
 
 ## 🆘 Problemas Comuns
 
-### ❌ Build Falha
-**Solução:** Verificar se o repositório está público e acessível
+| Problema | Solução |
+|----------|----------|
+| **Erro de rede "Pool overlaps"** | Use `docker-compose.portainer-simple.yml` |
+| Build falha | Verificar se repositório é público |
+| Container não inicia | Conferir variáveis obrigatórias |
+| API não responde | Testar `/health` endpoint |
+| Erro de permissão | Verificar volumes no Portainer |
 
-### ❌ Container não Inicia
-**Solução:** Verificar se todas as variáveis obrigatórias estão definidas
-
-### ❌ API não Responde
-**Solução:** Verificar logs do container e porta configurada
+> 📋 **Troubleshooting Completo:** [TROUBLESHOOTING_PORTAINER.md](./TROUBLESHOOTING_PORTAINER.md)
 
 ---
 
