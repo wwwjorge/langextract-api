@@ -10,6 +10,8 @@ import json
 
 class ExtractionRequest(BaseModel):
     """Request model for text extraction."""
+    model_config = {"protected_namespaces": ()}
+    
     text: str = Field(..., description="Text to extract information from")
     prompt_description: str = Field(
         ..., 
@@ -90,6 +92,8 @@ class ExtractionRequest(BaseModel):
 
 class ExtractionResponse(BaseModel):
     """Response model for extraction results."""
+    model_config = {"protected_namespaces": ()}
+    
     extraction_id: str = Field(..., description="Unique extraction ID")
     status: str = Field(..., description="Extraction status")
     results: Optional[List[Dict[str, Any]]] = Field(
@@ -158,6 +162,8 @@ class AuthResponse(BaseModel):
 
 class ModelInfo(BaseModel):
     """Model information model."""
+    model_config = {"protected_namespaces": ()}
+    
     model_id: str
     provider: str  # gemini, openai, ollama
     description: str
@@ -186,6 +192,8 @@ class FileUploadResponse(BaseModel):
 
 class BatchExtractionRequest(BaseModel):
     """Batch extraction request model."""
+    model_config = {"protected_namespaces": ()}
+    
     texts: List[str] = Field(..., min_items=1, max_items=100)
     prompt_description: str
     examples: Union[str, List[Dict[str, Any]]] = Field(default="[]")
@@ -223,6 +231,8 @@ class BatchExtractionResponse(BaseModel):
 
 class ConfigurationRequest(BaseModel):
     """Configuration update request model."""
+    model_config = {"protected_namespaces": ()}
+    
     default_model_id: Optional[str] = None
     default_temperature: Optional[float] = Field(None, ge=0.0, le=2.0)
     default_max_char_buffer: Optional[int] = Field(None, gt=0)
@@ -233,6 +243,8 @@ class ConfigurationRequest(BaseModel):
 
 class ConfigurationResponse(BaseModel):
     """Configuration response model."""
+    model_config = {"protected_namespaces": ()}
+    
     default_model_id: str
     default_temperature: float
     default_max_char_buffer: int
