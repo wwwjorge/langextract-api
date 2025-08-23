@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  langextract-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - LANGEXTRACT_API_KEY=${LANGEXTRACT_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - API_SECRET_KEY=${API_SECRET_KEY}
+      - API_ALGORITHM=${API_ALGORITHM:-HS256}
+      - API_ACCESS_TOKEN_EXPIRE_MINUTES=${API_ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+    volumes:
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+    depends_on:
+      - ollama
+    networks:
+      - langextract-network
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    command: serve
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - langextract-network
+
+volumes:
+  ollama-data:
+
+networks:
+  langextract-network:
+    driver: bridge
