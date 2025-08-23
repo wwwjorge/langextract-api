@@ -26,7 +26,7 @@ git add .
 git commit -m "Initial commit - LangExtract API"
 
 # Adicionar remote (GitHub, GitLab, etc.)
-git remote add origin https://github.com/seu-usuario/langextract-api.git
+git remote add origin https://github.com/wwwjorge/langextract-api.git
 git push -u origin main
 ```
 
@@ -34,7 +34,7 @@ git push -u origin main
 1. **Stacks** → **Add stack**
 2. **Name:** `langextract-api`
 3. **Build method:** `Repository**
-4. **Repository URL:** `https://github.com/seu-usuario/langextract-api.git`
+4. **Repository URL:** `https://github.com/wwwjorge/langextract-api.git`
 5. **Reference:** `refs/heads/main`
 6. **Compose path:** `docker-compose.portainer-lite.yml`
 7. **Environment variables:** Cole conteúdo de `.env.portainer-lite`
@@ -110,11 +110,11 @@ cd /mnt/f/Secondbrain/BrainServer/CodeServer/lagexstract
 # Build da imagem
 docker build -f Dockerfile.api -t langextract-api:latest .
 
-# Tag para registry
-docker tag langextract-api:latest seu-registry/langextract-api:latest
+# Tag para registry (exemplo com Docker Hub)
+docker tag langextract-api:latest wwwjorge/langextract-api:latest
 
 # Push para registry
-docker push seu-registry/langextract-api:latest
+docker push wwwjorge/langextract-api:latest
 ```
 
 ### 3.2 Docker Compose para Imagem Pré-construída
@@ -124,7 +124,7 @@ version: '3.8'
 
 services:
   langextract-api:
-    image: seu-registry/langextract-api:latest
+    image: wwwjorge/langextract-api:latest
     ports:
       - "${LANGEXTRACT_API_PORT:-8000}:8000"
     environment:
