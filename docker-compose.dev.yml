@@ -1,0 +1,214 @@
+# Docker Compose Override for Development
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+version: '3.8'
+
+services:
+  langextract-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    image: langextract-api:dev
+    container_name: langextract-api-dev
+    ports:
+      - "${API_PORT:-8000}:8000"
+      - "5678:5678"  # Debug port
+    environment:
+      # Development overrides
+      - LOG_LEVEL=DEBUG
+      - ENVIRONMENT=development
+      - RELOAD=true
+      - DEBUG=true
+      
+      # Relaxed CORS for development
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:8080
+      - CORS_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH
+      - CORS_HEADERS=*
+      
+      # Development API configuration
+      - API_KEY=${API_KEY:-dev-api-key-change-in-production}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-llama3.2:3b}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-100}
+      
+      # Provider URLs (development)
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      - GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+      - CLOUDFLARE_BASE_URL=${CLOUDFLARE_BASE_URL:-https://api.cloudflare.com/client/v4/accounts}
+      
+      # API Keys (use .env file)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      
+      # Development timeouts (shorter for faster feedback)
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-60}
+      - LLM_TIMEOUT=${LLM_TIMEOUT:-30}
+      
+      # Disable security headers for development
+      - X_FRAME_OPTIONS=ALLOWALL
+      - REFERRER_POLICY=no-referrer
+    
+    volumes:
+      # Hot reload - mount source code
+      - ./api:/app/api:ro
+      - ./langextract:/app/langextract:ro
+      - ./start_api.py:/app/start_api.py:ro
+      - ./requirements.txt:/app/requirements.txt:ro
+      
+      # Development volumes
+      - langextract-uploads-dev:/app/uploads
+      - langextract-logs-dev:/app/logs
+      - langextract-cache-dev:/app/cache
+      
+      # Development tools
+      - ./tests:/app/tests:ro
+      - ./scripts:/app/scripts:ro
+    
+    networks:
+      - langextract-network
+    
+    # Override health check for development
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    
+    # Development resource limits (more relaxed)
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 4G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    
+    # Development command with hot reload
+    command: >
+      sh -c "
+        echo 'Starting in development mode with hot reload...'
+        pip install debugpy
+        python -m debugpy --listen 0.0.0.0:5678 --wait-for-client start_api.py
+      "
+    
+    # Development labels
+    labels:
+      - "app.name=langextract-api"
+      - "app.environment=development"
+      - "app.version=dev"
+      - "traefik.enable=false"  # Disable Traefik in development
+
+  # Development database (optional)
+  postgres-dev:
+    image: postgres:15-alpine
+    container_name: langextract-postgres-dev
+    environment:
+      - POSTGRES_DB=langextract_dev
+      - POSTGRES_USER=langextract
+      - POSTGRES_PASSWORD=dev_password_change_me
+    ports:
+      - "5432:5432"
+    volumes:
+      - langextract-postgres-dev:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - langextract-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langextract -d langextract_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    labels:
+      - "app.name=langextract-postgres"
+      - "app.environment=development"
+      - "app.component=database"
+
+  # Development Redis
+  redis-dev:
+    image: redis:7-alpine
+    container_name: langextract-redis-dev
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass dev_redis_password
+    volumes:
+      - langextract-redis-dev:/data
+    networks:
+      - langextract-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "dev_redis_password", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "app.name=langextract-redis"
+      - "app.environment=development"
+      - "app.component=cache"
+
+  # Development tools container
+  dev-tools:
+    image: alpine:latest
+    container_name: langextract-dev-tools
+    command: tail -f /dev/null  # Keep container running
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - langextract-network
+    environment:
+      - WORKSPACE=/workspace
+    labels:
+      - "app.name=langextract-dev-tools"
+      - "app.environment=development"
+      - "app.component=tools"
+
+  # Mailhog for email testing (development)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: langextract-mailhog-dev
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - langextract-network
+    labels:
+      - "app.name=langextract-mailhog"
+      - "app.environment=development"
+      - "app.component=mail"
+
+volumes:
+  langextract-uploads-dev:
+    driver: local
+    name: langextract-uploads-dev
+  
+  langextract-logs-dev:
+    driver: local
+    name: langextract-logs-dev
+  
+  langextract-cache-dev:
+    driver: local
+    name: langextract-cache-dev
+  
+  langextract-redis-dev:
+    driver: local
+    name: langextract-redis-dev
+  
+  langextract-postgres-dev:
+    driver: local
+    name: langextract-postgres-dev
+
+networks:
+  langextract-network:
+    driver: bridge
+    name: langextract-network-dev
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+    labels:
+      - "app.name=langextract-network"
+      - "app.environment=development"

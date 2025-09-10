@@ -1,0 +1,250 @@
+{
+  "timestamp": "2025-09-10T16:40:06.056257",
+  "prompt": "Extract characters, emotions, and relationships in order of appearance.\nUse exact text for extractions. Do not paraphrase or overlap entities.\nProvide meaningful attributes for each entity to add context.",
+  "examples_count": 1,
+  "tests": [
+    {
+      "test_number": 1,
+      "input_text": "Lady Juliet gazed longingly at the stars, her heart aching for Romeo",
+      "extractions": {
+        "openai_gpt4o_mini": {
+          "success": true,
+          "count": 4,
+          "extractions": [
+            {
+              "class": "character",
+              "text": "Lady Juliet",
+              "attributes": {
+                "emotional_state": "longing"
+              }
+            },
+            {
+              "class": "emotion",
+              "text": "gazed longingly",
+              "attributes": {
+                "feeling": "yearning"
+              }
+            },
+            {
+              "class": "emotion",
+              "text": "her heart aching",
+              "attributes": {
+                "feeling": "painful desire"
+              }
+            },
+            {
+              "class": "relationship",
+              "text": "her heart aching for Romeo",
+              "attributes": {
+                "type": "romantic longing"
+              }
+            }
+          ]
+        },
+        "ollama_tinyllama_1.1b": {
+          "success": true,
+          "count": 7,
+          "extractions": [
+            {
+              "class": "character",
+              "text": "LADY JULIET",
+              "attributes": {
+                "emotion": "longingly gazes",
+                "feeling": "heart ache"
+              }
+            },
+            {
+              "class": "relation",
+              "text": "looks at the stars",
+              "attributes": {}
+            },
+            {
+              "class": "relation_attrubutes",
+              "text": "{'type': 'metaphor', 'metaphrase': 'longing gazes'}",
+              "attributes": {}
+            },
+            {
+              "class": "emocioal_state",
+              "text": "wanting",
+              "attributes": {}
+            },
+            {
+              "class": "feeling",
+              "text": "hearts ache",
+              "attributes": {}
+            },
+            {
+              "class": "relationship",
+              "text": "Romeo",
+              "attributes": {}
+            },
+            {
+              "class": "relationship_attrubutes",
+              "text": "{'type': 'simile', 'substance': 'heart'}",
+              "attributes": {}
+            }
+          ]
+        }
+      }
+    },
+    {
+      "test_number": 2,
+      "input_text": "The angry king shouted at his servants, demanding immediate action",
+      "extractions": {
+        "openai_gpt4o_mini": {
+          "success": true,
+          "count": 5,
+          "extractions": [
+            {
+              "class": "character",
+              "text": "the king",
+              "attributes": {
+                "emotional_state": "angry"
+              }
+            },
+            {
+              "class": "emotion",
+              "text": "shouted",
+              "attributes": {
+                "feeling": "frustration"
+              }
+            },
+            {
+              "class": "character",
+              "text": "his servants",
+              "attributes": {
+                "emotional_state": "submissive"
+              }
+            },
+            {
+              "class": "relationship",
+              "text": "king and servants",
+              "attributes": {
+                "type": "authority"
+              }
+            },
+            {
+              "class": "emotion",
+              "text": "demanding immediate action",
+              "attributes": {
+                "feeling": "urgency"
+              }
+            }
+          ]
+        },
+        "ollama_tinyllama_1.1b": {
+          "success": true,
+          "count": 2,
+          "extractions": [
+            {
+              "class": "character",
+              "text": "KINGLEY",
+              "attributes": {
+                "emotional_state": "angry"
+              }
+            },
+            {
+              "class": "relationship",
+              "text": "The angry king shouted at his servants, demanding immediate action",
+              "attributes": {
+                "type": "metaphor"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "test_number": 3,
+      "input_text": "Maria smiled warmly at her children, feeling grateful for their love",
+      "extractions": {
+        "openai_gpt4o_mini": {
+          "success": true,
+          "count": 4,
+          "extractions": [
+            {
+              "class": "character",
+              "text": "Maria",
+              "attributes": {
+                "emotional_state": "grateful"
+              }
+            },
+            {
+              "class": "emotion",
+              "text": "smiled warmly",
+              "attributes": {
+                "feeling": "affection"
+              }
+            },
+            {
+              "class": "character",
+              "text": "children",
+              "attributes": {
+                "emotional_state": "loved"
+              }
+            },
+            {
+              "class": "relationship",
+              "text": "Maria's love for her children",
+              "attributes": {
+                "type": "familial bond"
+              }
+            }
+          ]
+        },
+        "ollama_tinyllama_1.1b": {
+          "success": true,
+          "count": 6,
+          "extractions": [
+            {
+              "class": "character",
+              "text": "MARIA",
+              "attributes": {
+                "emoitional_state": "happiness"
+              }
+            },
+            {
+              "class": "relationship",
+              "text": "her children",
+              "attributes": {
+                "type": "refers to someone or something"
+              }
+            },
+            {
+              "class": "character",
+              "text": "MARIA'S CHILDREN",
+              "attributes": {
+                "emotion": "grateful",
+                "feeling": "contentment",
+                "type": "expressed in a sentence"
+              }
+            },
+            {
+              "class": "relationship",
+              "text": "with her children",
+              "attributes": {
+                "type": "refers to someone or something"
+              }
+            },
+            {
+              "class": "character",
+              "text": "MARIA'S CHILDREN",
+              "attributes": {
+                "emotion": "happy",
+                "feeling": "contentment",
+                "type": "expressed in a sentence"
+              }
+            },
+            {
+              "class": "relationship",
+              "text": "with her children",
+              "attributes": {
+                "type": "refers to someone or something"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

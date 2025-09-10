@@ -4,12 +4,14 @@
   </a>
 </p>
 
-# LangExtract
+# LangExtract API - Docker Deployment System
 
-[![PyPI version](https://img.shields.io/pypi/v/langextract.svg)](https://pypi.org/project/langextract/)
-[![GitHub stars](https://img.shields.io/github/stars/google/langextract.svg?style=social&label=Star)](https://github.com/google/langextract)
-![Tests](https://github.com/google/langextract/actions/workflows/ci.yaml/badge.svg)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17015089.svg)](https://doi.org/10.5281/zenodo.17015089)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](https://www.docker.com/)
+[![Portainer](https://img.shields.io/badge/Portainer-Compatible-green?logo=portainer)](https://www.portainer.io/)
+[![GitHub Container Registry](https://img.shields.io/badge/GHCR-Ready-orange?logo=github)](https://ghcr.io)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+A comprehensive Docker deployment system for the LangExtract API with advanced configuration, security, and monitoring features.
 
 ## Table of Contents
 

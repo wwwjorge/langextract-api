@@ -1,0 +1,227 @@
+version: '3.8'
+
+# Production Docker Compose configuration for LangExtract API
+# This file contains optimized settings for production deployment
+
+services:
+  langextract-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: langextract-api:${APP_VERSION:-latest}
+    container_name: langextract-api-prod
+    restart: always
+    ports:
+      - "${API_PORT:-8000}:8000"
+    environment:
+      # API Configuration
+      - API_KEY=${API_KEY}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-llama3.2:3b}
+      - UPLOAD_DIR=/app/uploads
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-50}
+      - LOG_LEVEL=${LOG_LEVEL:-WARNING}
+      
+      # CORS Configuration (restrictive for production)
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - CORS_METHODS=${CORS_METHODS:-GET,POST,OPTIONS}
+      - CORS_HEADERS=${CORS_HEADERS:-Content-Type,Authorization,X-API-Key}
+      
+      # Timeout Configuration
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-300}
+      - LLM_TIMEOUT=${LLM_TIMEOUT:-180}
+      
+      # Provider URLs
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      - GEMINI_BASE_URL=${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta}
+      - CLOUDFLARE_BASE_URL=${CLOUDFLARE_BASE_URL:-https://api.cloudflare.com/client/v4/accounts}
+      
+      # API Keys (must be set in production .env)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - CLOUDFLARE_ACCOUNT_ID=${CLOUDFLARE_ACCOUNT_ID}
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      
+      # Security Headers (strict for production)
+      - X_FRAME_OPTIONS=DENY
+      - REFERRER_POLICY=strict-origin-when-cross-origin
+      - X_XSS_PROTECTION=1; mode=block
+      - X_CONTENT_TYPE_OPTIONS=nosniff
+      - CONTENT_SECURITY_POLICY=default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+    volumes:
+      # Named volumes for production (persistent data)
+      - langextract-uploads-prod:/app/uploads
+      - langextract-logs-prod:/app/logs
+      - langextract-cache-prod:/app/cache
+    networks:
+      - langextract-prod-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '${CPU_LIMIT:-4.0}'
+          memory: ${MEMORY_LIMIT:-4G}
+        reservations:
+          cpus: '${CPU_RESERVATION:-1.0}'
+          memory: ${MEMORY_RESERVATION:-1G}
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp:noexec,nosuid,size=200m
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      # Traefik Configuration for Production
+      - "traefik.enable=true"
+      - "traefik.http.routers.langextract-prod.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.langextract-prod.tls=true"
+      - "traefik.http.routers.langextract-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.services.langextract-prod.loadbalancer.server.port=8000"
+      
+      # Security Middlewares
+      - "traefik.http.middlewares.langextract-security.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.langextract-security.headers.sslredirect=true"
+      - "traefik.http.middlewares.langextract-security.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.langextract-security.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.langextract-security.headers.stsPreload=true"
+      - "traefik.http.middlewares.langextract-security.headers.forceSTSHeader=true"
+      - "traefik.http.middlewares.langextract-security.headers.frameDeny=true"
+      - "traefik.http.middlewares.langextract-security.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.langextract-security.headers.browserXssFilter=true"
+      - "traefik.http.middlewares.langextract-security.headers.referrerPolicy=strict-origin-when-cross-origin"
+      
+      # Rate Limiting
+      - "traefik.http.middlewares.langextract-ratelimit.ratelimit.average=100"
+      - "traefik.http.middlewares.langextract-ratelimit.ratelimit.burst=200"
+      
+      # Apply Middlewares
+      - "traefik.http.routers.langextract-prod.middlewares=langextract-security,langextract-ratelimit"
+      
+      # Docker Compose Labels
+      - "com.docker.compose.project=langextract-prod"
+      - "com.docker.compose.service=api"
+      
+      # Portainer Labels
+      - "io.portainer.accesscontrol.teams=production-team"
+      - "io.portainer.accesscontrol.users=admin"
+      
+      # Custom Labels
+      - "app.name=langextract-api"
+      - "app.version=${APP_VERSION:-latest}"
+      - "app.environment=production"
+      - "app.description=LangExtract API for document text extraction - Production"
+      - "maintainer=${MAINTAINER_EMAIL:-admin@yourdomain.com}"
+
+  # Redis for production caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: langextract-redis-prod
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - langextract-redis-prod:/data
+    networks:
+      - langextract-prod-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  # Nginx reverse proxy (optional, if not using Traefik)
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: langextract-nginx-prod
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/ssl:/etc/nginx/ssl:ro
+  #   networks:
+  #     - langextract-prod-network
+  #   depends_on:
+  #     - langextract-api
+
+volumes:
+  langextract-uploads-prod:
+    driver: local
+    name: langextract-uploads-prod
+    driver_opts:
+      type: none
+      o: bind
+      device: ${UPLOADS_PATH:-/var/lib/langextract/uploads}
+  
+  langextract-logs-prod:
+    driver: local
+    name: langextract-logs-prod
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOGS_PATH:-/var/lib/langextract/logs}
+  
+  langextract-cache-prod:
+    driver: local
+    name: langextract-cache-prod
+    driver_opts:
+      type: none
+      o: bind
+      device: ${CACHE_PATH:-/var/lib/langextract/cache}
+  
+  langextract-redis-prod:
+    driver: local
+    name: langextract-redis-prod
+    driver_opts:
+      type: none
+      o: bind
+      device: ${REDIS_PATH:-/var/lib/langextract/redis}
+
+networks:
+  langextract-prod-network:
+    driver: bridge
+    name: langextract-prod-network
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+    labels:
+      - "com.docker.compose.project=langextract-prod"
+      - "app.name=langextract-prod-network"
+      - "app.environment=production"
