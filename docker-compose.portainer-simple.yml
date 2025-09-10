@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  langextract-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "${LANGEXTRACT_API_PORT:-8000}:8000"
+    environment:
+      - PYTHONPATH=/app
+      - LANGEXTRACT_API_KEY=${LANGEXTRACT_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - API_SECRET_KEY=${API_SECRET_KEY}
+      - API_ALGORITHM=${API_ALGORITHM:-HS256}
+      - API_ACCESS_TOKEN_EXPIRE_MINUTES=${API_ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      - DEFAULT_MODEL=${DEFAULT_MODEL:-gemini-1.5-flash}
+      - DEFAULT_PROVIDER=${DEFAULT_PROVIDER:-gemini}
+      - MAX_FILE_SIZE_MB=${MAX_FILE_SIZE_MB:-50}
+      - MAX_WORKERS=${MAX_WORKERS:-4}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+    volumes:
+      - langextract-uploads:/app/uploads
+      - langextract-outputs:/app/outputs
+      - langextract-logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  # Volume para arquivos enviados pelos usuários
+  langextract-uploads:
+    driver: local
+  
+  # Volume para resultados de extração
+  langextract-outputs:
+    driver: local
+  
+  # Volume para logs da aplicação
+  langextract-logs:
+    driver: local
