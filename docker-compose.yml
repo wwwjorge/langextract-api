@@ -72,10 +72,17 @@ services:
     
     deploy:
       resources:
-      - "app.name=langextract-api"
-      - "app.version=${APP_VERSION:-latest}"
-      - "app.description=LangExtract API for document text extraction"
-      - "maintainer=jorge@yourdomain.com"
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      labels:
+        - "app.name=langextract-api"
+        - "app.version=${APP_VERSION:-latest}"
+        - "app.description=LangExtract API for document text extraction"
+        - "maintainer=jorge@yourdomain.com"
 
   # Optional: Redis for caching (uncomment if needed)
   # redis:
