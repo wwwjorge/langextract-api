@@ -109,7 +109,7 @@ class ExtractionRequest(BaseModel):
     model_id: Optional[str] = Field(DEFAULT_MODEL, description="LLM model to use")
     temperature: Optional[float] = Field(DEFAULT_TEMPERATURE, description="Model temperature")
     examples: Optional[List[ExtractionExample]] = Field(None, description="Few-shot examples")
-    schema: Optional[Dict[str, Any]] = Field(None, description="JSON schema for extraction")
+    extraction_schema: Optional[Dict[str, Any]] = Field(None, description="JSON schema for extraction")
     max_tokens: Optional[int] = Field(None, description="Maximum tokens to generate")
     provider_url: Optional[str] = Field(None, description="Custom provider URL")
 
